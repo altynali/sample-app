@@ -1,5 +1,5 @@
 import { Persona, PersonaSize, mergeStyleSets } from "@fluentui/react";
-import React, { FC } from "react";
+import { FC } from "react";
 import { TContact } from "../eWayAPI/ContactsResponse";
 
 type BusinessCardProps = {

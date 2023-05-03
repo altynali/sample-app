@@ -10,10 +10,18 @@ import {
 } from "@fluentui/react";
 import { TContact, TContactsResopnse } from "./eWayAPI/ContactsResponse";
 import connection from "./eWayAPI/Connector";
-import BusinessCard from "./widgets/BusinessCard";
+import BusinessCard from "./features/BusinessCard";
 import ErrorBoundary from "./components/ErrorBoundary";
+import Form from "./features/Form";
 
 const css = mergeStyleSets({
+  root: {
+    width: "100%",
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   loadingDiv: {
     width: "50vw",
     position: "absolute",
@@ -44,20 +52,22 @@ const App: FC = () => {
       (result: TContactsResopnse) => {
         if (result.Data.length !== 0 && !!result.Data[0].FileAs) {
           setUser(result.Data[0]);
-
-          setLoading(false);
+          setError("");
         } else {
-          console.log(result);
-
-          setLoading(false);
-
-          throw new Error(result.Description);
+          setError(result.Description);
         }
+        setLoading(false);
+      },
+      undefined,
+      undefined,
+      // I've noticed, that you handle errors this way, but i add ErrorBoundary either way
+      (err) => {
+        setError(err.message);
       }
     );
 
     setEmail("");
-    console.log("user", user);
+    setError("");
   };
 
   if (loading) {
@@ -74,37 +84,22 @@ const App: FC = () => {
   return (
     <ErrorBoundary>
       <div>
-        {/* {error && (
-        <MessageBar messageBarType={MessageBarType.error} isMultiline>
-          {error}
-        </MessageBar>
-      )} */}
+        {error && (
+          <MessageBar messageBarType={MessageBarType.error} isMultiline>
+            {error}
+          </MessageBar>
+        )}
+      </div>
 
+      <div className={css.root}>
         {user ? (
-          <>
-            <BusinessCard user={user} />
-
-            <PrimaryButton
-              onClick={() =>
-                (window.location.href = "https://www.eway-crm.com")
-              }
-              text="OK"
-            />
-          </>
+          <BusinessCard user={user} />
         ) : (
-          <form onSubmit={handleFormSubmit}>
-            <TextField
-              label="Email"
-              name="email"
-              type="email"
-              required
-              value={email}
-              onChange={(
-                e: FormEvent<HTMLInputElement | HTMLTextAreaElement>
-              ) => setEmail((e.target as HTMLInputElement).value)}
-            />
-            <DefaultButton type="submit">Submit</DefaultButton>
-          </form>
+          <Form
+            handleFormSubmit={handleFormSubmit}
+            email={email}
+            setEmail={setEmail}
+          />
         )}
       </div>
     </ErrorBoundary>
